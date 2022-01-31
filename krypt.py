@@ -3,30 +3,16 @@ import hashlib
 from Crypto import Random
 from Crypto.Cipher import AES
 
+import os
+import csv
+
 class AESCipher():
 
     def __init__(self, key):
         self.bs = AES.block_size
         self.key = hashlib.sha256(key.encode()).digest()
 
-    def hashPrompt(self):
-
-        print("Enter site for the password to be encrypted:")
-        site = input()
-
-        print("Enter username:")
-        userName = input()
-
-        print("Enter password to be encrypted:")
-        plainText = self.joinText(site, userName, input())
-
-        return plainText
-
-    def joinText(self, site, userName, pwd):
-        return ";".join([site, userName, pwd])
-
-    def encrypt(self):
-        raw = self.hashPrompt()
+    def encrypt(self, raw):
         raw = self._pad(raw)
         iv = Random.new().read(AES.block_size)
         cipher = AES.new(self.key, AES.MODE_CBC, iv)
@@ -36,7 +22,25 @@ class AESCipher():
         enc = base64.b64decode(enc)
         iv = enc[:AES.block_size]
         cipher = AES.new(self.key, AES.MODE_CBC, iv)
-        return self._unpad(cipher.decrypt(enc[AES.block_size:])).decode('utf-8')
+        return self._unpad(cipher.decrypt(enc[AES.block_size:])).decode("utf-8")
+
+    def addEntry(self, plainTextRow):
+        fileName = "DB"
+
+        if os.path.isfile(fileName) == False :
+            textFile = open(fileName, "w+")
+            enc = self.encrypt(plainTextRow)
+            textFile.write(enc.decode("utf-8"))
+        else:
+            textFile = open(fileName, "r+")
+            raw = self.decrypt(textFile.read())
+
+            raw = ".".join([raw,plainTextRow])
+
+            enc = self.encrypt(raw)
+            textFile.write(enc.decode("utf-8"))
+
+        textFile.close()
 
     def _pad(self, s):
         return s + (self.bs - len(s) % self.bs) * chr(self.bs - len(s) % self.bs)

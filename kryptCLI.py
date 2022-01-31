@@ -18,7 +18,18 @@ args = parser.parse_args();
 
 if args.e:
     cipher = krypt.AESCipher(args.privateKey)
-    print(cipher.encrypt());
+    print("Enter site for the password to be encrypted:")
+    site = "gmail.com"
+
+    print("Enter username:")
+    userName = "onkar"
+
+    print("Enter password to be encrypted:")
+    pwd = "pass"
+
+    plainTextRow = " ".join([site, userName, pwd])
+    cipher.addEntry(plainTextRow)
+
 elif args.d:
     cipher = krypt.AESCipher(args.privateKey)
     print(cipher.decrypt(args.hash));
