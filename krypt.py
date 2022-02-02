@@ -3,14 +3,16 @@ import hashlib
 from Crypto import Random
 from Crypto.Cipher import AES
 
+import io
 import os
-import csv
+
 
 class AESCipher():
 
     def __init__(self, key):
         self.bs = AES.block_size
         self.key = hashlib.sha256(key.encode()).digest()
+        self.fileName = "Db.kr"
 
     def encrypt(self, raw):
         raw = self._pad(raw)
@@ -25,22 +27,38 @@ class AESCipher():
         return self._unpad(cipher.decrypt(enc[AES.block_size:])).decode("utf-8")
 
     def addEntry(self, plainTextRow):
-        fileName = "DB"
 
-        if os.path.isfile(fileName) == False :
-            textFile = open(fileName, "w+")
+        if os.path.isfile(self.fileName) == False :
+            textFile = io.open(self.fileName, "wb+")
+
             enc = self.encrypt(plainTextRow)
-            textFile.write(enc.decode("utf-8"))
+            textFile.write(enc)
         else:
-            textFile = open(fileName, "r+")
-            raw = self.decrypt(textFile.read())
+            textFile = io.open(self.fileName, "rb+")
 
-            raw = ".".join([raw,plainTextRow])
+            raw = self.decrypt(textFile.read())
+            raw = ";".join([raw,plainTextRow])
 
             enc = self.encrypt(raw)
-            textFile.write(enc.decode("utf-8"))
+            textFile.close()
+
+            textFile = io.open(self.fileName, "wb")
+            textFile.write(enc)
 
         textFile.close()
+
+    def decryptAll(self, enc):
+        if os.path.isfile(self.fileName) == True :
+            textFile = io.open(self.fileName, "r")
+            Db = self.decrypt(textFile.read())
+            Db = self.parse(Db)
+            textFile.close()
+            return Db
+
+    @staticmethod
+    def parse(txt):
+        return txt.replace(";", "\n")
+
 
     def _pad(self, s):
         return s + (self.bs - len(s) % self.bs) * chr(self.bs - len(s) % self.bs)

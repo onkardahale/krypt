@@ -10,6 +10,9 @@ group.add_argument("-e", action="store_true");
 # -d hash privateKey
 group.add_argument("-d", action="store_true");
 
+# -dall
+group.add_argument("-dall", action="store_true")
+
 #arguments
 parser.add_argument("--privateKey", type=str, required=True)
 parser.add_argument("--hash", type=str, required=False)
@@ -32,6 +35,8 @@ if args.e:
 
 elif args.d:
     cipher = krypt.AESCipher(args.privateKey)
-    print(cipher.decrypt(args.hash));
+    print(cipher.decrypt(args.hash))
 
-#print("privateKey is: " + args.privateKey)
+elif args.dall:
+    cipher = krypt.AESCipher(args.privateKey)
+    print(cipher.decryptAll(args.hash))
